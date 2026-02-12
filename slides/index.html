@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Documentación de WhatsBrick — Guía completa para configurar la WhatsApp Cloud API con Node.js y desplegarlo en Railway." />
+  <meta name="theme-color" content="#0f172a" />
+  <title>WhatsBrick — Guía WhatsApp API</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+          },
+        },
+      },
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    /* Smooth scrolling offset for fixed header */
+    [id] { scroll-margin-top: 5rem; }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    .dark ::-webkit-scrollbar-thumb { background: #475569; }
+
+    /* Sidebar active link */
+    .nav-link.active {
+      color: #2563eb;
+      background-color: #eff6ff;
+      font-weight: 600;
+    }
+    .dark .nav-link.active {
+      color: #60a5fa;
+      background-color: #1e293b;
+    }
+
+    /* Code block styling */
+    pre code {
+      display: block;
+      overflow-x: auto;
+      padding: 1.25rem;
+      font-size: 0.875rem;
+      line-height: 1.7;
+    }
+
+    /* Copy button */
+    .copy-btn {
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .code-block:hover .copy-btn,
+    .copy-btn:focus {
+      opacity: 1;
+    }
+
+    /* Mobile sidebar */
+    #sidebar-overlay {
+      transition: opacity 0.3s;
+    }
+    #sidebar-panel {
+      transition: transform 0.3s;
+    }
+
+    /* Print styles */
+    @media print {
+      nav, #sidebar, #mobile-menu-btn, #theme-toggle, #back-to-top { display: none !important; }
+      main { margin-left: 0 !important; padding: 1rem !important; }
+    }
+  </style>
+</head>
+<body class="bg-white text-slate-800 font-sans dark:bg-slate-950 dark:text-slate-200 antialiased">
+
+  <!-- Skip to content (accessibility) -->
+  <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-blue-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg focus:outline-none">
+    Saltar al contenido principal
+  </a>
+
+  <!-- Top navbar -->
+  <header class="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-slate-950/80 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800" role="banner">
+    <div class="flex items-center justify-between px-4 lg:px-6 h-14">
+      <div class="flex items-center gap-3">
+        <!-- Mobile menu button -->
+        <button
+          id="mobile-menu-btn"
+          class="lg:hidden p-2 -ml-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          aria-label="Abrir menú de navegación"
+          aria-expanded="false"
+          aria-controls="sidebar-panel"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+        <!-- Logo / title -->
+        <a href="#top" class="flex items-center gap-2 text-lg font-bold tracking-tight text-slate-900 dark:text-white" aria-label="WhatsBrick — Inicio">
+          <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-green-600 text-white text-sm font-bold" aria-hidden="true">W</span>
+          <span>WhatsBrick</span>
+        </a>
+        <span class="hidden sm:inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400">Docs</span>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <!-- GitHub link -->
+        <a href="https://github.com/gndx/WhatsBrick" target="_blank" rel="noopener noreferrer" class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Ver repositorio en GitHub">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+          </svg>
+        </a>
+        <!-- Dark mode toggle -->
+        <button
+          id="theme-toggle"
+          class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          aria-label="Cambiar tema claro/oscuro"
+        >
+          <svg id="icon-sun" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m8.66-13.66l-.71.71M4.05 19.95l-.71.71M21 12h-1M4 12H3m16.66 7.66l-.71-.71M4.05 4.05l-.71-.71M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+          </svg>
+          <svg id="icon-moon" class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.005 9.005 0 0012 21a9.005 9.005 0 008.354-5.646z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile sidebar overlay -->
+  <div id="sidebar-overlay" class="fixed inset-0 z-40 bg-black/50 hidden lg:hidden" aria-hidden="true"></div>
+
+  <!-- Sidebar navigation -->
+  <aside
+    id="sidebar-panel"
+    class="fixed top-14 left-0 z-40 w-72 h-[calc(100vh-3.5rem)] bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 overflow-y-auto -translate-x-full lg:translate-x-0 transition-transform"
+    role="navigation"
+    aria-label="Navegación de la documentación"
+  >
+    <nav class="p-4 space-y-6">
+      <!-- Part I -->
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2 px-3">Parte I — Entender WhatsApp</h3>
+        <ul class="space-y-0.5" role="list">
+          <li><a href="#que-es-whatsapp" class="nav-link block px-3 py-1.5 text-sm rounded-lg text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">1. Que es WhatsApp</a></li>
+          <li><a href="#tipos-de-whatsapp" class="nav-link block px-3 py-1.5 text-sm rounded-lg text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">2. Tipos de WhatsApp</a></li>
+          <li><a href="#como-funciona" class="nav-link block px-3 py-1.5 text-sm rounded-lg text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">3. Cómo funciona la API</a></li>
+          <li><a href="#requisitos" class="nav-link block px-3 py-1.5 text-sm rounded-lg text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">4. Requisitos</a></li>
+        </ul>
+      </div>
+      <!-- Part II -->
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2 px-3">Parte II — Preparar el entorno</h3>
+        <ul class="space-y-0.5" role="list">
+          <li><a href="#crear-app-meta" class="nav-link block px-3 py-1.5 text-sm rounded-lg text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">5. Crear app en Meta</a></li>
+          <li><a href="#clonar-repo" class="nav-link block px-3 py-1.5 text-sm rounded-lg text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">6. Clonar el repositorio</a></li>
+          <li><a href="#instalar-deps" class="nav-link block px-3 py-1.5 text-sm rounded-lg text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">7. Instalar dependencias</a></li>
+          <li><a href="#variables-entorno" class="nav-link block px-3 py-1.5 text-sm rounded-lg text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">8. Variables de entorno</a></li>
+          <li><a href="#estructura" class="nav-link block px-3 py-1.5 text-sm rounded-lg text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">9. Estructura del proyecto</a></li>
+        </ul>
+      </div>
+      <!-- Part III -->
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2 px-3">Parte III — Desplegar (Railway)</h3>
+        <ul class="space-y-0.5" role="list">
+          <li><a href="#requisitos-previos" class="nav-link block px-3 py-1.5 text-sm rounded-lg text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">10. Requisitos previos</a></li>
+          <li><a href="#subir-github" class="nav-link block px-3 py-1.5 text-sm rounded-lg text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">11. Subir a GitHub</a></li>
+          <li><a href="#desplegar-railway" class="nav-link block px-3 py-1.5 text-sm rounded-lg text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">12. Desplegar en Railway</a></li>
+          <li><a href="#configurar-puerto" class="nav-link block px-3 py-1.5 text-sm rounded-lg text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">13. Configuración del puerto</a></li>
+          <li><a href="#url-publica" class="nav-link block px-3 py-1.5 text-sm rounded-lg text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">14. URL pública</a></li>
+          <li><a href="#vars-railway" class="nav-link block px-3 py-1.5 text-sm rounded-lg text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">15. Variables en Railway</a></li>
+          <li><a href="#comprobar-servidor" class="nav-link block px-3 py-1.5 text-sm rounded-lg text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">16. Comprobar servidor</a></li>
+        </ul>
+      </div>
+      <!-- Part IV -->
+      <div>
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2 px-3">Parte IV — Vibecoding</h3>
+        <ul class="space-y-0.5" role="list">
+          <li><a href="#definir-resultado" class="nav-link block px-3 py-1.5 text-sm rounded-lg text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">17. Definir el resultado</a></li>
+          <li><a href="#alcance-mvp" class="nav-link block px-3 py-1.5 text-sm rounded-lg text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">18. Alcance mínimo (MVP)</a></li>
+          <li><a href="#restricciones" class="nav-link block px-3 py-1.5 text-sm rounded-lg text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">19. Restricciones técnicas</a></li>
+          <li><a href="#microtareas" class="nav-link block px-3 py-1.5 text-sm rounded-lg text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">20. Dividir en microtareas</a></li>
+          <li><a href="#iterar-feedback" class="nav-link block px-3 py-1.5 text-sm rounded-lg text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">21. Iterar con feedback</a></li>
+          <li><a href="#plantilla-prompt" class="nav-link block px-3 py-1.5 text-sm rounded-lg text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">22. Plantilla de prompt</a></li>
+          <li><a href="#regla-de-oro" class="nav-link block px-3 py-1.5 text-sm rounded-lg text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">23. Regla de oro</a></li>
+        </ul>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- Main content -->
+  <main id="main-content" class="lg:ml-72 pt-14" role="main">
+    <div class="max-w-3xl mx-auto px-6 py-12 lg:py-16">
+
+      <!-- Hero -->
+      <section id="top" class="mb-16">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-sm font-medium mb-6">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492a.5.5 0 00.612.616l4.529-1.468A11.956 11.956 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-2.24 0-4.326-.722-6.016-1.95a.5.5 0 00-.416-.07l-3.143 1.019.994-3.095a.5.5 0 00-.073-.432A9.96 9.96 0 012 12C2 6.486 6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/></svg>
+          Guía completa
+        </div>
+        <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight mb-4">
+          WhatsApp API<br/>con <span class="text-green-600 dark:text-green-400">WhatsBrick</span>
+        </h1>
+        <p class="text-lg text-slate-600 dark:text-slate-400 max-w-2xl leading-relaxed">
+          Documentación para configurar la WhatsApp Cloud API usando el proyecto base WhatsBrick: creación de app en Meta, configuración local y despliegue en Railway.
+        </p>
+        <!-- Table of contents summary -->
+        <div class="mt-8 grid sm:grid-cols-2 gap-3" role="list" aria-label="Índice de contenido">
+          <a href="#parte-1" class="group flex items-center gap-3 p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-green-300 dark:hover:border-green-700 hover:bg-green-50/50 dark:hover:bg-green-950/20 transition-colors" role="listitem">
+            <span class="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 text-sm font-bold text-slate-600 dark:text-slate-300 group-hover:bg-green-100 dark:group-hover:bg-green-900/40 group-hover:text-green-700 dark:group-hover:text-green-400 transition-colors">I</span>
+            <span class="text-sm font-medium">Entender WhatsApp y la API</span>
+          </a>
+          <a href="#parte-2" class="group flex items-center gap-3 p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-green-300 dark:hover:border-green-700 hover:bg-green-50/50 dark:hover:bg-green-950/20 transition-colors" role="listitem">
+            <span class="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 text-sm font-bold text-slate-600 dark:text-slate-300 group-hover:bg-green-100 dark:group-hover:bg-green-900/40 group-hover:text-green-700 dark:group-hover:text-green-400 transition-colors">II</span>
+            <span class="text-sm font-medium">Preparar el entorno</span>
+          </a>
+          <a href="#parte-3" class="group flex items-center gap-3 p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-green-300 dark:hover:border-green-700 hover:bg-green-50/50 dark:hover:bg-green-950/20 transition-colors" role="listitem">
+            <span class="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 text-sm font-bold text-slate-600 dark:text-slate-300 group-hover:bg-green-100 dark:group-hover:bg-green-900/40 group-hover:text-green-700 dark:group-hover:text-green-400 transition-colors">III</span>
+            <span class="text-sm font-medium">Desplegar en internet (Railway)</span>
+          </a>
+          <a href="#parte-4" class="group flex items-center gap-3 p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-green-300 dark:hover:border-green-700 hover:bg-green-50/50 dark:hover:bg-green-950/20 transition-colors" role="listitem">
+            <span class="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 text-sm font-bold text-slate-600 dark:text-slate-300 group-hover:bg-green-100 dark:group-hover:bg-green-900/40 group-hover:text-green-700 dark:group-hover:text-green-400 transition-colors">IV</span>
+            <span class="text-sm font-medium">Vibecoding</span>
+          </a>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- PARTE I -->
+      <!-- ============================================================ -->
+      <section id="parte-1" class="mb-16" aria-labelledby="parte-1-heading">
+        <div class="flex items-center gap-3 mb-8">
+          <span class="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 font-bold text-lg">I</span>
+          <h2 id="parte-1-heading" class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">Entender WhatsApp y la API</h2>
+        </div>
+
+        <!-- Section 1 -->
+        <article id="que-es-whatsapp" class="mb-12">
+          <h3 class="text-xl font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+            <span class="text-sm font-mono text-slate-400 dark:text-slate-500">01</span>
+            ¿Qué es WhatsApp?
+          </h3>
+          <ul class="space-y-2 text-slate-600 dark:text-slate-400" role="list">
+            <li class="flex items-start gap-2"><span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0" aria-hidden="true"></span>Plataforma de mensajería propiedad de <strong class="text-slate-800 dark:text-slate-200">Meta</strong></li>
+            <li class="flex items-start gap-2"><span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0" aria-hidden="true"></span>Más de <strong class="text-slate-800 dark:text-slate-200">2 mil millones</strong> de usuarios en el mundo</li>
+            <li class="flex items-start gap-2"><span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0" aria-hidden="true"></span>Comunicación: texto, voz, video, archivos, ubicaciones</li>
+            <li class="flex items-start gap-2"><span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0" aria-hidden="true"></span><strong class="text-slate-800 dark:text-slate-200">Cifrado de extremo a extremo</strong> por defecto</li>
+            <li class="flex items-start gap-2"><span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0" aria-hidden="true"></span>Canal con <strong class="text-slate-800 dark:text-slate-200">muy alta tasa de apertura</strong> (aprox. 80–98%)</li>
+            <li class="flex items-start gap-2"><span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0" aria-hidden="true"></span>Uso personal y empresarial</li>
+          </ul>
+        </article>
+
+        <!-- Section 2 -->
+        <article id="tipos-de-whatsapp" class="mb-12">
+          <h3 class="text-xl font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+            <span class="text-sm font-mono text-slate-400 dark:text-slate-500">02</span>
+            Tipos de WhatsApp
+          </h3>
+
+          <div class="space-y-6">
+            <!-- 2.1 -->
+            <div class="p-5 rounded-xl border border-slate-200 dark:border-slate-800">
+              <h4 class="font-semibold text-slate-900 dark:text-white mb-2">WhatsApp Messenger <span class="text-sm font-normal text-slate-500">(personal)</span></h4>
+              <ul class="space-y-1.5 text-sm text-slate-600 dark:text-slate-400" role="list">
+                <li class="flex items-start gap-2"><span class="mt-1.5 w-1 h-1 rounded-full bg-slate-400 flex-shrink-0" aria-hidden="true"></span>App estándar para uso individual</li>
+                <li class="flex items-start gap-2"><span class="mt-1.5 w-1 h-1 rounded-full bg-slate-400 flex-shrink-0" aria-hidden="true"></span>No permite automatización ni integraciones</li>
+                <li class="flex items-start gap-2"><span class="mt-1.5 w-1 h-1 rounded-full bg-slate-400 flex-shrink-0" aria-hidden="true"></span>Solo uso manual (celular o WhatsApp Web)</li>
+              </ul>
+            </div>
+            <!-- 2.2 -->
+            <div class="p-5 rounded-xl border border-slate-200 dark:border-slate-800">
+              <h4 class="font-semibold text-slate-900 dark:text-white mb-2">WhatsApp Business App <span class="text-sm font-normal text-slate-500">(empresas pequeñas)</span></h4>
+              <ul class="space-y-1.5 text-sm text-slate-600 dark:text-slate-400" role="list">
+                <li class="flex items-start gap-2"><span class="mt-1.5 w-1 h-1 rounded-full bg-slate-400 flex-shrink-0" aria-hidden="true"></span>Perfil comercial: horarios, dirección, web, catálogo</li>
+                <li class="flex items-start gap-2"><span class="mt-1.5 w-1 h-1 rounded-full bg-slate-400 flex-shrink-0" aria-hidden="true"></span>Respuestas rápidas y mensajes automáticos básicos</li>
+                <li class="flex items-start gap-2"><span class="mt-1.5 w-1 h-1 rounded-full bg-slate-400 flex-shrink-0" aria-hidden="true"></span>No escala para muchos agentes ni integraciones</li>
+                <li class="flex items-start gap-2"><span class="mt-1.5 w-1 h-1 rounded-full bg-slate-400 flex-shrink-0" aria-hidden="true"></span>No expone API</li>
+              </ul>
+            </div>
+            <!-- 2.3 -->
+            <div class="p-5 rounded-xl border border-green-200 dark:border-green-800/50 bg-green-50/50 dark:bg-green-950/20">
+              <h4 class="font-semibold text-slate-900 dark:text-white mb-2">WhatsApp Business Platform <span class="text-sm font-normal text-green-600 dark:text-green-400">(API)</span></h4>
+              <ul class="space-y-1.5 text-sm text-slate-600 dark:text-slate-400" role="list">
+                <li class="flex items-start gap-2"><span class="mt-1.5 w-1 h-1 rounded-full bg-green-500 flex-shrink-0" aria-hidden="true"></span>Medianas y grandes empresas</li>
+                <li class="flex items-start gap-2"><span class="mt-1.5 w-1 h-1 rounded-full bg-green-500 flex-shrink-0" aria-hidden="true"></span>Permite: bots, CRM, ERP, e-commerce, múltiples agentes</li>
+                <li class="flex items-start gap-2"><span class="mt-1.5 w-1 h-1 rounded-full bg-green-500 flex-shrink-0" aria-hidden="true"></span>No tiene interfaz propia; se integra con sistemas externos</li>
+                <li class="flex items-start gap-2"><span class="mt-1.5 w-1 h-1 rounded-full bg-green-500 flex-shrink-0" aria-hidden="true"></span>Opciones: <strong class="text-slate-800 dark:text-slate-200">Cloud API</strong> (Meta) o <strong class="text-slate-800 dark:text-slate-200">BSP</strong> (Twilio, Infobip, Sinch...)</li>
+              </ul>
+            </div>
+          </div>
+        </article>
+
+        <!-- Section 3 -->
+        <article id="como-funciona" class="mb-12">
+          <h3 class="text-xl font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+            <span class="text-sm font-mono text-slate-400 dark:text-slate-500">03</span>
+            Cómo funciona la WhatsApp API
+          </h3>
+          <p class="text-slate-600 dark:text-slate-400 mb-4">Cuando un usuario escribe, se abre una <strong class="text-slate-800 dark:text-slate-200">ventana de 24 horas</strong>. Dentro de esa ventana se puede responder con libertad. Para <strong class="text-slate-800 dark:text-slate-200">iniciar</strong> una conversación desde el negocio se requiere un <strong class="text-slate-800 dark:text-slate-200">mensaje plantilla (template)</strong> aprobado por Meta.</p>
+
+          <h4 class="font-semibold text-slate-900 dark:text-white mb-3">Flujo</h4>
+          <ol class="space-y-2 text-slate-600 dark:text-slate-400 mb-4 list-decimal list-inside">
+            <li>El usuario envía un mensaje</li>
+            <li>WhatsApp envía el evento al <strong class="text-slate-800 dark:text-slate-200">webhook</strong> (URL del servidor)</li>
+            <li>El backend procesa el mensaje</li>
+            <li>El sistema responde usando la API de WhatsApp</li>
+            <li>WhatsApp entrega la respuesta al usuario</li>
+          </ol>
+
+          <div class="code-block relative mb-6">
+            <div class="flex items-center justify-between px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-t-xl border border-b-0 border-slate-200 dark:border-slate-700">
+              <span class="text-xs font-mono text-slate-500 dark:text-slate-400">flujo</span>
+              <button class="copy-btn text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Copiar código al portapapeles" onclick="copyCode(this)">Copiar</button>
+            </div>
+            <pre class="bg-slate-50 dark:bg-slate-900 rounded-b-xl border border-t-0 border-slate-200 dark:border-slate-700"><code class="font-mono text-slate-800 dark:text-slate-300">Usuario → WhatsApp → Webhook (servidor) → API WhatsApp → Usuario</code></pre>
+          </div>
+
+          <h4 class="font-semibold text-slate-900 dark:text-white mb-3">Tipos de mensajes en la API</h4>
+          <div class="overflow-x-auto mb-6">
+            <table class="w-full text-sm border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden" role="table">
+              <caption class="sr-only">Tipos de mensajes disponibles en la API de WhatsApp</caption>
+              <thead>
+                <tr class="bg-slate-50 dark:bg-slate-800/50">
+                  <th scope="col" class="text-left px-4 py-3 font-semibold text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-700">Tipo</th>
+                  <th scope="col" class="text-left px-4 py-3 font-semibold text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-700">Uso típico</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
+                <tr><td class="px-4 py-3 font-medium text-slate-800 dark:text-slate-200">Service</td><td class="px-4 py-3 text-slate-600 dark:text-slate-400">Soporte dentro de 24 h</td></tr>
+                <tr><td class="px-4 py-3 font-medium text-slate-800 dark:text-slate-200">Utility</td><td class="px-4 py-3 text-slate-600 dark:text-slate-400">Transaccionales (orden, factura)</td></tr>
+                <tr><td class="px-4 py-3 font-medium text-slate-800 dark:text-slate-200">Authentication</td><td class="px-4 py-3 text-slate-600 dark:text-slate-400">Códigos OTP</td></tr>
+                <tr><td class="px-4 py-3 font-medium text-slate-800 dark:text-slate-200">Marketing</td><td class="px-4 py-3 text-slate-600 dark:text-slate-400">Promociones</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h4 class="font-semibold text-slate-900 dark:text-white mb-3">Cobro</h4>
+          <ul class="space-y-2 text-slate-600 dark:text-slate-400" role="list">
+            <li class="flex items-start gap-2"><span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0" aria-hidden="true"></span>Se cobra por <strong class="text-slate-800 dark:text-slate-200">mensaje entregado</strong></li>
+            <li class="flex items-start gap-2"><span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0" aria-hidden="true"></span>El precio depende del <strong class="text-slate-800 dark:text-slate-200">país del destinatario</strong> y del <strong class="text-slate-800 dark:text-slate-200">tipo de mensaje</strong></li>
+            <li class="flex items-start gap-2"><span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0" aria-hidden="true"></span>Los mensajes de <strong class="text-slate-800 dark:text-slate-200">servicio</strong> (soporte reactivo) en muchos casos no tienen costo</li>
+          </ul>
+        </article>
+
+        <!-- Section 4 -->
+        <article id="requisitos" class="mb-12">
+          <h3 class="text-xl font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+            <span class="text-sm font-mono text-slate-400 dark:text-slate-500">04</span>
+            Requisitos para usar la WhatsApp API
+          </h3>
+
+          <h4 class="font-semibold text-slate-900 dark:text-white mb-3">Requisitos de negocio</h4>
+          <ul class="space-y-2 text-slate-600 dark:text-slate-400 mb-6" role="list">
+            <li class="flex items-start gap-2"><span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" aria-hidden="true"></span>Cuenta en <strong class="text-slate-800 dark:text-slate-200">Meta Business Manager</strong></li>
+            <li class="flex items-start gap-2"><span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" aria-hidden="true"></span><strong class="text-slate-800 dark:text-slate-200">WhatsApp Business Account (WABA)</strong></li>
+            <li class="flex items-start gap-2"><span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" aria-hidden="true"></span><strong class="text-slate-800 dark:text-slate-200">Número de teléfono</strong> dedicado (no puede estar en la app personal)</li>
+            <li class="flex items-start gap-2"><span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" aria-hidden="true"></span>Verificación del negocio (recomendada para escalar)</li>
+            <li class="flex items-start gap-2"><span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" aria-hidden="true"></span>Aceptación de políticas comerciales y de mensajería</li>
+          </ul>
+
+          <h4 class="font-semibold text-slate-900 dark:text-white mb-3">Requisitos técnicos</h4>
+          <ul class="space-y-2 text-slate-600 dark:text-slate-400" role="list">
+            <li class="flex items-start gap-2">
+              <span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" aria-hidden="true"></span>
+              <div><strong class="text-slate-800 dark:text-slate-200">Servidor (backend)</strong> con:
+                <ul class="mt-1 ml-4 space-y-1">
+                  <li>URL pública <strong class="text-slate-800 dark:text-slate-200">HTTPS</strong> para recibir eventos (webhook)</li>
+                  <li>Capacidad de recibir y procesar JSON</li>
+                  <li>Lógica para enviar mensajes por la API</li>
+                </ul>
+              </div>
+            </li>
+            <li class="flex items-start gap-2"><span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" aria-hidden="true"></span><strong class="text-slate-800 dark:text-slate-200">Hosting</strong> en internet (Railway, AWS, GCP, Vercel, etc.)</li>
+            <li class="flex items-start gap-2"><span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" aria-hidden="true"></span>Base de datos (opcional)</li>
+            <li class="flex items-start gap-2"><span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" aria-hidden="true"></span>Gestión de <strong class="text-slate-800 dark:text-slate-200">tokens</strong> y, en su caso, de <strong class="text-slate-800 dark:text-slate-200">templates</strong></li>
+          </ul>
+        </article>
+      </section>
+
+      <hr class="border-slate-200 dark:border-slate-800 mb-16" />
+
+      <!-- ============================================================ -->
+      <!-- PARTE II -->
+      <!-- ============================================================ -->
+      <section id="parte-2" class="mb-16" aria-labelledby="parte-2-heading">
+        <div class="flex items-center gap-3 mb-4">
+          <span class="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-400 font-bold text-lg">II</span>
+          <h2 id="parte-2-heading" class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">Preparar el entorno</h2>
+        </div>
+        <p class="text-slate-600 dark:text-slate-400 mb-8 ml-[52px]">Orden: crear app en Meta &rarr; clonar el proyecto &rarr; instalar dependencias &rarr; configurar variables &rarr; revisar estructura.</p>
+
+        <!-- Section 5 -->
+        <article id="crear-app-meta" class="mb-12">
+          <h3 class="text-xl font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+            <span class="text-sm font-mono text-slate-400 dark:text-slate-500">05</span>
+            Crear una app en Meta
+          </h3>
+          <p class="text-slate-600 dark:text-slate-400 mb-4">En <strong class="text-slate-800 dark:text-slate-200">Meta for Developers</strong> se crea la aplicación y se obtienen las credenciales necesarias.</p>
+
+          <div class="space-y-6">
+            <div>
+              <h4 class="font-semibold text-slate-900 dark:text-white mb-2">5.1 Entrar a Meta for Developers</h4>
+              <ol class="space-y-1.5 text-sm text-slate-600 dark:text-slate-400 list-decimal list-inside">
+                <li>Ir a <a href="https://developers.facebook.com" target="_blank" rel="noopener noreferrer" class="text-blue-600 dark:text-blue-400 underline underline-offset-2 hover:text-blue-800 dark:hover:text-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded">developers.facebook.com</a></li>
+                <li>Iniciar sesión con cuenta de Facebook (o crear una)</li>
+                <li>Aceptar los términos si aplica</li>
+              </ol>
+            </div>
+
+            <div>
+              <h4 class="font-semibold text-slate-900 dark:text-white mb-2">5.2 Crear la aplicación</h4>
+              <ol class="space-y-1.5 text-sm text-slate-600 dark:text-slate-400 list-decimal list-inside">
+                <li>Clic en <strong class="text-slate-800 dark:text-slate-200">Mis aplicaciones</strong> (My Apps)</li>
+                <li>Clic en <strong class="text-slate-800 dark:text-slate-200">Crear aplicación</strong> (Create App)</li>
+                <li>Tipo de uso: <strong class="text-slate-800 dark:text-slate-200">Otro</strong> (Other)</li>
+                <li>Tipo de aplicación: <strong class="text-slate-800 dark:text-slate-200">Empresa</strong> (Business)</li>
+                <li>Nombre: p. ej. <code class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-sm font-mono">WhatsBrick</code></li>
+                <li>Correo y cuenta de negocio (opcional al inicio)</li>
+                <li>Clic en <strong class="text-slate-800 dark:text-slate-200">Crear aplicación</strong></li>
+              </ol>
+            </div>
+
+            <div>
+              <h4 class="font-semibold text-slate-900 dark:text-white mb-2">5.3 Añadir WhatsApp</h4>
+              <ol class="space-y-1.5 text-sm text-slate-600 dark:text-slate-400 list-decimal list-inside">
+                <li>En el panel, en "Añadir productos", buscar <strong class="text-slate-800 dark:text-slate-200">WhatsApp</strong></li>
+                <li>Clic en <strong class="text-slate-800 dark:text-slate-200">Configurar</strong> (Set up)</li>
+                <li>Elegir <strong class="text-slate-800 dark:text-slate-200">API de WhatsApp</strong> (hospedada por Meta)</li>
+                <li>Si se solicita Meta Business Suite, crear o vincular la cuenta</li>
+              </ol>
+            </div>
+
+            <div>
+              <h4 class="font-semibold text-slate-900 dark:text-white mb-2">5.4 Obtener token e ID de teléfono</h4>
+              <ol class="space-y-1.5 text-sm text-slate-600 dark:text-slate-400 list-decimal list-inside">
+                <li>En el menú: <strong class="text-slate-800 dark:text-slate-200">WhatsApp &rarr; Introducción</strong> (Getting started)</li>
+                <li><strong class="text-slate-800 dark:text-slate-200">Número de prueba:</strong> anotar el número que Meta asigna</li>
+                <li><strong class="text-slate-800 dark:text-slate-200">Phone Number ID:</strong> copiarlo; se usará como <code class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-sm font-mono">PHONE_NUMBER_ID</code></li>
+                <li><strong class="text-slate-800 dark:text-slate-200">Token temporal:</strong> clic en Generar, copiar el token; se usará como <code class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-sm font-mono">WHATSAPP_TOKEN</code></li>
+              </ol>
+              <div class="mt-3 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 text-sm text-amber-800 dark:text-amber-300" role="note">
+                <strong>Nota:</strong> Este token caduca. En producción se requiere un token permanente (cuenta verificada).
+              </div>
+            </div>
+
+            <div>
+              <h4 class="font-semibold text-slate-900 dark:text-white mb-2">5.5 ID y secreto de la app (opcional)</h4>
+              <ul class="space-y-1.5 text-sm text-slate-600 dark:text-slate-400" role="list">
+                <li class="flex items-start gap-2"><span class="mt-1.5 w-1 h-1 rounded-full bg-slate-400 flex-shrink-0" aria-hidden="true"></span>En <strong class="text-slate-800 dark:text-slate-200">Configuración &rarr; Básica:</strong> ID de aplicación (App ID)</li>
+                <li class="flex items-start gap-2"><span class="mt-1.5 w-1 h-1 rounded-full bg-slate-400 flex-shrink-0" aria-hidden="true"></span><strong class="text-slate-800 dark:text-slate-200">Secreto de la aplicación</strong> (App Secret): no compartir; puede usarse en webhooks</li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 class="font-semibold text-slate-900 dark:text-white mb-3">5.6 Resumen de variables</h4>
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden" role="table">
+                  <caption class="sr-only">Variables de entorno necesarias y dónde obtenerlas</caption>
+                  <thead>
+                    <tr class="bg-slate-50 dark:bg-slate-800/50">
+                      <th scope="col" class="text-left px-4 py-3 font-semibold text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-700">Variable</th>
+                      <th scope="col" class="text-left px-4 py-3 font-semibold text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-700">Dónde se obtiene</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
+                    <tr><td class="px-4 py-3 font-mono text-sm text-slate-800 dark:text-slate-200">WHATSAPP_TOKEN</td><td class="px-4 py-3 text-slate-600 dark:text-slate-400">WhatsApp &rarr; Token temporal (Generate)</td></tr>
+                    <tr><td class="px-4 py-3 font-mono text-sm text-slate-800 dark:text-slate-200">PHONE_NUMBER_ID</td><td class="px-4 py-3 text-slate-600 dark:text-slate-400">WhatsApp &rarr; Getting started / Phone number</td></tr>
+                    <tr><td class="px-4 py-3 font-mono text-sm text-slate-800 dark:text-slate-200">VERIFY_TOKEN</td><td class="px-4 py-3 text-slate-600 dark:text-slate-400">Definido localmente (palabra secreta para el webhook)</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Section 6 -->
+        <article id="clonar-repo" class="mb-12">
+          <h3 class="text-xl font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+            <span class="text-sm font-mono text-slate-400 dark:text-slate-500">06</span>
+            Clonar el repositorio
+          </h3>
+          <ol class="space-y-2 text-slate-600 dark:text-slate-400 mb-4 list-decimal list-inside">
+            <li>Abrir una terminal en la carpeta deseada para el proyecto</li>
+            <li>Ejecutar:</li>
+          </ol>
+          <div class="code-block relative mb-4">
+            <div class="flex items-center justify-between px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-t-xl border border-b-0 border-slate-200 dark:border-slate-700">
+              <span class="text-xs font-mono text-slate-500 dark:text-slate-400">bash</span>
+              <button class="copy-btn text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Copiar código al portapapeles" onclick="copyCode(this)">Copiar</button>
+            </div>
+            <pre class="bg-slate-50 dark:bg-slate-900 rounded-b-xl border border-t-0 border-slate-200 dark:border-slate-700"><code class="font-mono text-slate-800 dark:text-slate-300">git clone https://github.com/gndx/WhatsBrick.git
+cd WhatsBrick</code></pre>
+          </div>
+          <p class="text-sm text-slate-500 dark:text-slate-500">Alternativa sin Git: <a href="https://github.com/gndx/WhatsBrick/archive/refs/heads/main.zip" target="_blank" rel="noopener noreferrer" class="text-blue-600 dark:text-blue-400 underline underline-offset-2 hover:text-blue-800 dark:hover:text-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded">Descargar proyecto en ZIP</a>, descomprimir y abrir la terminal dentro de esa carpeta.</p>
+        </article>
+
+        <!-- Section 7 -->
+        <article id="instalar-deps" class="mb-12">
+          <h3 class="text-xl font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+            <span class="text-sm font-mono text-slate-400 dark:text-slate-500">07</span>
+            Instalar dependencias
+          </h3>
+          <p class="text-slate-600 dark:text-slate-400 mb-4">En la carpeta del proyecto:</p>
+          <div class="code-block relative mb-4">
+            <div class="flex items-center justify-between px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-t-xl border border-b-0 border-slate-200 dark:border-slate-700">
+              <span class="text-xs font-mono text-slate-500 dark:text-slate-400">bash</span>
+              <button class="copy-btn text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Copiar código al portapapeles" onclick="copyCode(this)">Copiar</button>
+            </div>
+            <pre class="bg-slate-50 dark:bg-slate-900 rounded-b-xl border border-t-0 border-slate-200 dark:border-slate-700"><code class="font-mono text-slate-800 dark:text-slate-300">npm install</code></pre>
+          </div>
+          <p class="text-sm text-slate-500 dark:text-slate-500">Salida esperada: <code class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-sm font-mono">added packages...</code> y <code class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-sm font-mono">found 0 vulnerabilities</code>.</p>
+        </article>
+
+        <!-- Section 8 -->
+        <article id="variables-entorno" class="mb-12">
+          <h3 class="text-xl font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+            <span class="text-sm font-mono text-slate-400 dark:text-slate-500">08</span>
+            Configurar variables de entorno
+          </h3>
+          <ol class="space-y-2 text-slate-600 dark:text-slate-400 mb-4 list-decimal list-inside">
+            <li>En la carpeta del proyecto localizar <code class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-sm font-mono">.env.example</code></li>
+            <li>Copiarlo y renombrar la copia a <code class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-sm font-mono">.env</code> o <code class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-sm font-mono">.env.local</code></li>
+            <li>Editar el archivo con los valores del paso 5:</li>
+          </ol>
+          <div class="code-block relative mb-4">
+            <div class="flex items-center justify-between px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-t-xl border border-b-0 border-slate-200 dark:border-slate-700">
+              <span class="text-xs font-mono text-slate-500 dark:text-slate-400">.env</span>
+              <button class="copy-btn text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Copiar código al portapapeles" onclick="copyCode(this)">Copiar</button>
+            </div>
+            <pre class="bg-slate-50 dark:bg-slate-900 rounded-b-xl border border-t-0 border-slate-200 dark:border-slate-700"><code class="font-mono text-slate-800 dark:text-slate-300">VERIFY_TOKEN=palabra_secreta
+WHATSAPP_TOKEN=token_de_meta
+PHONE_NUMBER_ID=id_del_numero</code></pre>
+          </div>
+          <div class="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 text-sm text-amber-800 dark:text-amber-300" role="note">
+            <strong>Importante:</strong> El archivo <code class="px-1 py-0.5 bg-amber-100 dark:bg-amber-900/40 rounded font-mono text-xs">.env</code> no debe subirse a GitHub (debe estar en <code class="px-1 py-0.5 bg-amber-100 dark:bg-amber-900/40 rounded font-mono text-xs">.gitignore</code>).
+          </div>
+        </article>
+
+        <!-- Section 9 -->
+        <article id="estructura" class="mb-12">
+          <h3 class="text-xl font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+            <span class="text-sm font-mono text-slate-400 dark:text-slate-500">09</span>
+            Estructura del proyecto
+          </h3>
+          <p class="text-slate-600 dark:text-slate-400 mb-4">Estructura base tras clonar e instalar:</p>
+          <div class="code-block relative mb-4">
+            <div class="flex items-center justify-between px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-t-xl border border-b-0 border-slate-200 dark:border-slate-700">
+              <span class="text-xs font-mono text-slate-500 dark:text-slate-400">estructura</span>
+              <button class="copy-btn text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Copiar código al portapapeles" onclick="copyCode(this)">Copiar</button>
+            </div>
+            <pre class="bg-slate-50 dark:bg-slate-900 rounded-b-xl border border-t-0 border-slate-200 dark:border-slate-700"><code class="font-mono text-slate-800 dark:text-slate-300">whatsbrick/
+├── .env.example    # Plantilla de variables (versionado)
+├── .env.local      # Variables locales (no versionado)
+├── package.json    # Dependencias y scripts
+├── package-lock.json
+├── docs/           # Documentación
+└── src/
+    └── app.js      # Punto de entrada: servidor y rutas del webhook</code></pre>
+          </div>
+          <ul class="space-y-2 text-slate-600 dark:text-slate-400" role="list">
+            <li class="flex items-start gap-2"><span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-purple-500 flex-shrink-0" aria-hidden="true"></span><code class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-sm font-mono">app.js</code> levanta el servidor y define las rutas del webhook.</li>
+            <li class="flex items-start gap-2"><span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-purple-500 flex-shrink-0" aria-hidden="true"></span>Las variables de <code class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-sm font-mono">.env</code> se usan para conectar con Meta y verificar el webhook.</li>
+          </ul>
+        </article>
+      </section>
+
+      <hr class="border-slate-200 dark:border-slate-800 mb-16" />
+
+      <!-- ============================================================ -->
+      <!-- PARTE III -->
+      <!-- ============================================================ -->
+      <section id="parte-3" class="mb-16" aria-labelledby="parte-3-heading">
+        <div class="flex items-center gap-3 mb-4">
+          <span class="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-400 font-bold text-lg">III</span>
+          <h2 id="parte-3-heading" class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">Desplegar en internet (Railway)</h2>
+        </div>
+        <p class="text-slate-600 dark:text-slate-400 mb-8 ml-[52px]">Para que WhatsApp pueda invocar el webhook, el proyecto debe estar en una <strong class="text-slate-800 dark:text-slate-200">URL pública</strong>. Railway permite exponer el proyecto sin gestionar servidores.</p>
+
+        <!-- Section 10 -->
+        <article id="requisitos-previos" class="mb-12">
+          <h3 class="text-xl font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+            <span class="text-sm font-mono text-slate-400 dark:text-slate-500">10</span>
+            Requisitos previos
+          </h3>
+          <ul class="space-y-2 text-slate-600 dark:text-slate-400" role="list">
+            <li class="flex items-start gap-2"><span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-orange-500 flex-shrink-0" aria-hidden="true"></span>Proyecto en una carpeta (p. ej. <code class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-sm font-mono">WhatsBrick</code>) con la Parte II completada</li>
+            <li class="flex items-start gap-2"><span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-orange-500 flex-shrink-0" aria-hidden="true"></span>Cuenta en <strong class="text-slate-800 dark:text-slate-200">GitHub</strong></li>
+            <li class="flex items-start gap-2"><span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-orange-500 flex-shrink-0" aria-hidden="true"></span>Cuenta en <strong class="text-slate-800 dark:text-slate-200">Railway</strong>: <a href="https://railway.app" target="_blank" rel="noopener noreferrer" class="text-blue-600 dark:text-blue-400 underline underline-offset-2 hover:text-blue-800 dark:hover:text-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded">railway.app</a> (acceso con GitHub posible)</li>
+          </ul>
+        </article>
+
+        <!-- Section 11 -->
+        <article id="subir-github" class="mb-12">
+          <h3 class="text-xl font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+            <span class="text-sm font-mono text-slate-400 dark:text-slate-500">11</span>
+            Subir el proyecto a GitHub
+          </h3>
+
+          <h4 class="font-semibold text-slate-900 dark:text-white mb-2">11.1 Crear el repositorio</h4>
+          <ol class="space-y-1.5 text-sm text-slate-600 dark:text-slate-400 mb-6 list-decimal list-inside">
+            <li>Ir a <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="text-blue-600 dark:text-blue-400 underline underline-offset-2 hover:text-blue-800 dark:hover:text-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded">github.com</a> e iniciar sesión</li>
+            <li>Clic en <strong class="text-slate-800 dark:text-slate-200">New repository</strong></li>
+            <li>Nombre: p. ej. <code class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-sm font-mono">WhatsBrick</code></li>
+            <li>Público o privado</li>
+            <li>Clic en <strong class="text-slate-800 dark:text-slate-200">Create repository</strong></li>
+          </ol>
+
+          <h4 class="font-semibold text-slate-900 dark:text-white mb-3">11.2 Conectar la carpeta local con GitHub</h4>
+          <p class="text-sm text-slate-600 dark:text-slate-400 mb-3">En la terminal, dentro de la carpeta del proyecto:</p>
+          <div class="code-block relative mb-4">
+            <div class="flex items-center justify-between px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-t-xl border border-b-0 border-slate-200 dark:border-slate-700">
+              <span class="text-xs font-mono text-slate-500 dark:text-slate-400">bash</span>
+              <button class="copy-btn text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Copiar código al portapapeles" onclick="copyCode(this)">Copiar</button>
+            </div>
+            <pre class="bg-slate-50 dark:bg-slate-900 rounded-b-xl border border-t-0 border-slate-200 dark:border-slate-700"><code class="font-mono text-slate-800 dark:text-slate-300">git add .
+git commit -m "primer commit"
+git branch -M main
+git remote add origin https://github.com/TU_USUARIO/WhatsBrick.git
+git push -u origin main</code></pre>
+          </div>
+          <p class="text-sm text-slate-500 dark:text-slate-500">Sustituir <code class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-sm font-mono">TU_USUARIO</code> por el usuario de GitHub.</p>
+        </article>
+
+        <!-- Section 12 -->
+        <article id="desplegar-railway" class="mb-12">
+          <h3 class="text-xl font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+            <span class="text-sm font-mono text-slate-400 dark:text-slate-500">12</span>
+            Desplegar en Railway
+          </h3>
+          <ol class="space-y-2 text-slate-600 dark:text-slate-400 list-decimal list-inside">
+            <li>Ir a <a href="https://railway.app" target="_blank" rel="noopener noreferrer" class="text-blue-600 dark:text-blue-400 underline underline-offset-2 hover:text-blue-800 dark:hover:text-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded">railway.app</a> e iniciar sesión con GitHub</li>
+            <li>Clic en <strong class="text-slate-800 dark:text-slate-200">New Project</strong></li>
+            <li>Elegir <strong class="text-slate-800 dark:text-slate-200">Deploy from GitHub repo</strong></li>
+            <li>Seleccionar el repositorio <code class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-sm font-mono">WhatsBrick</code></li>
+          </ol>
+          <p class="mt-3 text-sm text-slate-500 dark:text-slate-500">Railway detecta Node.js, instala dependencias y ejecuta el proyecto.</p>
+        </article>
+
+        <!-- Section 13 -->
+        <article id="configurar-puerto" class="mb-12">
+          <h3 class="text-xl font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+            <span class="text-sm font-mono text-slate-400 dark:text-slate-500">13</span>
+            Configuración del puerto
+          </h3>
+          <p class="text-slate-600 dark:text-slate-400 mb-4">El archivo principal del servidor debe usar la variable de entorno <code class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-sm font-mono">PORT</code>:</p>
+          <div class="code-block relative mb-4">
+            <div class="flex items-center justify-between px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-t-xl border border-b-0 border-slate-200 dark:border-slate-700">
+              <span class="text-xs font-mono text-slate-500 dark:text-slate-400">javascript</span>
+              <button class="copy-btn text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Copiar código al portapapeles" onclick="copyCode(this)">Copiar</button>
+            </div>
+            <pre class="bg-slate-50 dark:bg-slate-900 rounded-b-xl border border-t-0 border-slate-200 dark:border-slate-700"><code class="font-mono text-slate-800 dark:text-slate-300">const PORT = process.env.PORT || 3000;
+app.listen(PORT, () =&gt; {
+  console.log("Servidor en puerto", PORT);
+});</code></pre>
+          </div>
+          <p class="text-sm text-slate-500 dark:text-slate-500">Railway asigna el puerto mediante <code class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-sm font-mono">process.env.PORT</code>. Si el proyecto ya incluye esta lógica, no es necesario cambiarla.</p>
+        </article>
+
+        <!-- Section 14 -->
+        <article id="url-publica" class="mb-12">
+          <h3 class="text-xl font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+            <span class="text-sm font-mono text-slate-400 dark:text-slate-500">14</span>
+            Obtener la URL pública
+          </h3>
+          <ol class="space-y-2 text-slate-600 dark:text-slate-400 list-decimal list-inside">
+            <li>En el proyecto en Railway, ir a <strong class="text-slate-800 dark:text-slate-200">Settings</strong></li>
+            <li>Buscar <strong class="text-slate-800 dark:text-slate-200">Public Domain</strong> (o "Generate domain")</li>
+            <li>Generar un dominio</li>
+          </ol>
+          <p class="mt-3 text-sm text-slate-600 dark:text-slate-400">Se obtiene una URL base (p. ej. <code class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-sm font-mono">https://WhatsBrick-production.up.railway.app</code>). La URL del webhook será esa base + <code class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-sm font-mono">/webhook</code>.</p>
+        </article>
+
+        <!-- Section 15 -->
+        <article id="vars-railway" class="mb-12">
+          <h3 class="text-xl font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+            <span class="text-sm font-mono text-slate-400 dark:text-slate-500">15</span>
+            Variables de entorno en Railway
+          </h3>
+          <ol class="space-y-2 text-slate-600 dark:text-slate-400 mb-4 list-decimal list-inside">
+            <li>En el proyecto en Railway, abrir <strong class="text-slate-800 dark:text-slate-200">Variables</strong></li>
+            <li>Añadir las mismas variables que en <code class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-sm font-mono">.env</code> local:</li>
+          </ol>
+          <div class="code-block relative mb-4">
+            <div class="flex items-center justify-between px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-t-xl border border-b-0 border-slate-200 dark:border-slate-700">
+              <span class="text-xs font-mono text-slate-500 dark:text-slate-400">.env</span>
+              <button class="copy-btn text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Copiar código al portapapeles" onclick="copyCode(this)">Copiar</button>
+            </div>
+            <pre class="bg-slate-50 dark:bg-slate-900 rounded-b-xl border border-t-0 border-slate-200 dark:border-slate-700"><code class="font-mono text-slate-800 dark:text-slate-300">VERIFY_TOKEN=palabra_secreta
+WHATSAPP_TOKEN=token_real
+PHONE_NUMBER_ID=id</code></pre>
+          </div>
+          <p class="text-sm text-slate-500 dark:text-slate-500">Guardar. Railway reinicia el proyecto con las nuevas variables.</p>
+        </article>
+
+        <!-- Section 16 -->
+        <article id="comprobar-servidor" class="mb-12">
+          <h3 class="text-xl font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+            <span class="text-sm font-mono text-slate-400 dark:text-slate-500">16</span>
+            Comprobar que el servidor responde
+          </h3>
+          <p class="text-slate-600 dark:text-slate-400">Abrir en el navegador la URL del proyecto (p. ej. <code class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-sm font-mono">https://tu-dominio.up.railway.app</code>). Si se obtiene respuesta (p. ej. "OK" o mensaje del servidor), el despliegue está activo. Esa URL + <code class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-sm font-mono">/webhook</code> es la que debe configurarse en Meta (sección WhatsApp de la app).</p>
+        </article>
+      </section>
+
+      <hr class="border-slate-200 dark:border-slate-800 mb-16" />
+
+      <!-- ============================================================ -->
+      <!-- PARTE IV -->
+      <!-- ============================================================ -->
+      <section id="parte-4" class="mb-16" aria-labelledby="parte-4-heading">
+        <div class="flex items-center gap-3 mb-4">
+          <span class="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-pink-100 dark:bg-pink-900/40 text-pink-700 dark:text-pink-400 font-bold text-lg">IV</span>
+          <h2 id="parte-4-heading" class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">Vibecoding</h2>
+        </div>
+        <p class="text-slate-600 dark:text-slate-400 mb-8 ml-[52px]">Metodología para definir mejor las instrucciones a una IA (p. ej. Cursor, ChatGPT) y reducir código innecesario o confuso.</p>
+
+        <!-- Section 17 -->
+        <article id="definir-resultado" class="mb-12">
+          <h3 class="text-xl font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+            <span class="text-sm font-mono text-slate-400 dark:text-slate-500">17</span>
+            Definir el resultado (no solo la tarea)
+          </h3>
+          <p class="text-slate-600 dark:text-slate-400 mb-3">Antes de pedir código, concretar:</p>
+          <ul class="space-y-2 text-slate-600 dark:text-slate-400 mb-4" role="list">
+            <li class="flex items-start gap-2"><span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-pink-500 flex-shrink-0" aria-hidden="true"></span>Qué problema se resuelve</li>
+            <li class="flex items-start gap-2"><span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-pink-500 flex-shrink-0" aria-hidden="true"></span>Cómo debe quedar el resultado</li>
+            <li class="flex items-start gap-2"><span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-pink-500 flex-shrink-0" aria-hidden="true"></span>Qué no debe hacer la solución</li>
+          </ul>
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm text-slate-600 dark:text-slate-400 italic">
+            "API en Node + Express que reciba webhooks de WhatsApp Cloud API y responda mensajes de texto. Minimalista y lista para deploy."
+          </div>
+        </article>
+
+        <!-- Section 18 -->
+        <article id="alcance-mvp" class="mb-12">
+          <h3 class="text-xl font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+            <span class="text-sm font-mono text-slate-400 dark:text-slate-500">18</span>
+            Definir el alcance mínimo (MVP)
+          </h3>
+          <p class="text-slate-600 dark:text-slate-400 mb-3">Priorizar pocas funcionalidades. Para esta API, por ejemplo:</p>
+          <ul class="space-y-2 text-slate-600 dark:text-slate-400 mb-4" role="list">
+            <li class="flex items-start gap-2"><span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-pink-500 flex-shrink-0" aria-hidden="true"></span>GET <code class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-sm font-mono">/webhook</code> (verificación)</li>
+            <li class="flex items-start gap-2"><span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-pink-500 flex-shrink-0" aria-hidden="true"></span>POST <code class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-sm font-mono">/webhook</code> (recibir mensajes)</li>
+            <li class="flex items-start gap-2"><span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-pink-500 flex-shrink-0" aria-hidden="true"></span>Lógica para enviar mensajes</li>
+          </ul>
+          <p class="text-sm text-slate-500 dark:text-slate-500">Evitar al inicio: autenticación compleja, Docker, tests, arquitectura pesada.</p>
+        </article>
+
+        <!-- Section 19 -->
+        <article id="restricciones" class="mb-12">
+          <h3 class="text-xl font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+            <span class="text-sm font-mono text-slate-400 dark:text-slate-500">19</span>
+            Definir restricciones técnicas
+          </h3>
+          <p class="text-slate-600 dark:text-slate-400 mb-3">Especificar de forma explícita:</p>
+          <ul class="space-y-2 text-slate-600 dark:text-slate-400 mb-4" role="list">
+            <li class="flex items-start gap-2"><span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-pink-500 flex-shrink-0" aria-hidden="true"></span>Lenguaje: p. ej. Node 20</li>
+            <li class="flex items-start gap-2"><span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-pink-500 flex-shrink-0" aria-hidden="true"></span>Framework: p. ej. Express</li>
+            <li class="flex items-start gap-2"><span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-pink-500 flex-shrink-0" aria-hidden="true"></span>Módulos: CommonJS o ES Modules</li>
+            <li class="flex items-start gap-2"><span class="mt-1.5 w-1.5 h-1.5 rounded-full bg-pink-500 flex-shrink-0" aria-hidden="true"></span>Sin dependencias innecesarias</li>
+          </ul>
+          <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-sm text-slate-600 dark:text-slate-400 italic">
+            "No usar TypeScript ni librerías adicionales excepto express y axios."
+          </div>
+        </article>
+
+        <!-- Section 20 -->
+        <article id="microtareas" class="mb-12">
+          <h3 class="text-xl font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+            <span class="text-sm font-mono text-slate-400 dark:text-slate-500">20</span>
+            Dividir en microtareas
+          </h3>
+          <p class="text-slate-600 dark:text-slate-400 mb-3">Antes de pedir código, listar los pasos:</p>
+          <ol class="space-y-1.5 text-slate-600 dark:text-slate-400 mb-4 list-decimal list-inside">
+            <li>Crear servidor Express</li>
+            <li>Configurar body parser</li>
+            <li>Ruta GET webhook</li>
+            <li>Validar token</li>
+            <li>Ruta POST webhook</li>
+            <li>Extraer mensaje entrante</li>
+            <li>Función <code class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-sm font-mono">sendMessage()</code></li>
+            <li>Probar con curl</li>
+          </ol>
+          <p class="text-sm text-slate-500 dark:text-slate-500">Pedir la implementación por partes para evitar bloques de código demasiado grandes.</p>
+        </article>
+
+        <!-- Section 21 -->
+        <article id="iterar-feedback" class="mb-12">
+          <h3 class="text-xl font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+            <span class="text-sm font-mono text-slate-400 dark:text-slate-500">21</span>
+            Iterar con feedback concreto
+          </h3>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div class="p-4 rounded-xl border border-red-200 dark:border-red-800/50 bg-red-50/50 dark:bg-red-950/20">
+              <p class="text-xs font-semibold uppercase tracking-wider text-red-600 dark:text-red-400 mb-2">Feedback vago</p>
+              <p class="text-sm text-slate-600 dark:text-slate-400">"No funciona."</p>
+            </div>
+            <div class="p-4 rounded-xl border border-green-200 dark:border-green-800/50 bg-green-50/50 dark:bg-green-950/20">
+              <p class="text-xs font-semibold uppercase tracking-wider text-green-600 dark:text-green-400 mb-2">Feedback útil</p>
+              <p class="text-sm text-slate-600 dark:text-slate-400">"El webhook devuelve 403 al verificar. El token enviado es X. Ajustar la validación."</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- Section 22 -->
+        <article id="plantilla-prompt" class="mb-12">
+          <h3 class="text-xl font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+            <span class="text-sm font-mono text-slate-400 dark:text-slate-500">22</span>
+            Plantilla de prompt
+          </h3>
+          <div class="code-block relative mb-4">
+            <div class="flex items-center justify-between px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-t-xl border border-b-0 border-slate-200 dark:border-slate-700">
+              <span class="text-xs font-mono text-slate-500 dark:text-slate-400">plantilla</span>
+              <button class="copy-btn text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Copiar código al portapapeles" onclick="copyCode(this)">Copiar</button>
+            </div>
+            <pre class="bg-slate-50 dark:bg-slate-900 rounded-b-xl border border-t-0 border-slate-200 dark:border-slate-700"><code class="font-mono text-slate-800 dark:text-slate-300">Contexto: Estoy construyendo [X].
+Objetivo: Necesito [resultado concreto].
+Alcance: Solo 1) … 2) … 3) …
+Restricciones: Node 20, Express, CommonJS, sin dependencias extra.
+Entrega: Código mínimo y explicación breve.</code></pre>
+          </div>
+        </article>
+
+        <!-- Section 23 -->
+        <article id="regla-de-oro" class="mb-12">
+          <h3 class="text-xl font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+            <span class="text-sm font-mono text-slate-400 dark:text-slate-500">23</span>
+            Regla de oro
+          </h3>
+          <div class="space-y-3">
+            <div class="flex items-start gap-3 p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+              <span class="flex-shrink-0 mt-0.5 text-lg" aria-hidden="true">&#x2022;</span>
+              <p class="text-slate-700 dark:text-slate-300">La IA <strong>ejecuta</strong>; la decisión es <strong>humana</strong>.</p>
+            </div>
+            <div class="flex items-start gap-3 p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+              <span class="flex-shrink-0 mt-0.5 text-lg" aria-hidden="true">&#x2022;</span>
+              <p class="text-slate-700 dark:text-slate-300">El <strong>plan</strong> define; el <strong>código</strong> lo implementa.</p>
+            </div>
+            <div class="flex items-start gap-3 p-4 rounded-xl bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800/50">
+              <span class="flex-shrink-0 mt-0.5 text-lg" aria-hidden="true">&#x2022;</span>
+              <p class="text-slate-700 dark:text-slate-300">Sin plan, la IA improvisa; <strong>con plan, el avance es más rápido y controlado</strong>.</p>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- Footer -->
+      <footer class="pt-8 pb-12 border-t border-slate-200 dark:border-slate-800" role="contentinfo">
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-500 dark:text-slate-500">
+          <p>WhatsBrick &mdash; Guía WhatsApp Cloud API</p>
+          <a href="https://github.com/gndx/WhatsBrick" target="_blank" rel="noopener noreferrer" class="text-blue-600 dark:text-blue-400 underline underline-offset-2 hover:text-blue-800 dark:hover:text-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded">Ver en GitHub</a>
+        </div>
+      </footer>
+    </div>
+  </main>
+
+  <!-- Back to top -->
+  <button
+    id="back-to-top"
+    class="fixed bottom-6 right-6 z-50 w-10 h-10 rounded-full bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-lg flex items-center justify-center opacity-0 pointer-events-none transition-opacity hover:bg-slate-700 dark:hover:bg-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+    aria-label="Volver al inicio de la página"
+  >
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
+    </svg>
+  </button>
+
+  <script>
+    // ── Dark mode ──
+    const html = document.documentElement;
+    const themeToggle = document.getElementById('theme-toggle');
+    const stored = localStorage.getItem('theme');
+    if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      html.classList.add('dark');
+    }
+    themeToggle.addEventListener('click', () => {
+      html.classList.toggle('dark');
+      localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+    });
+
+    // ── Mobile sidebar ──
+    const menuBtn = document.getElementById('mobile-menu-btn');
+    const sidebar = document.getElementById('sidebar-panel');
+    const overlay = document.getElementById('sidebar-overlay');
+
+    function openSidebar() {
+      sidebar.classList.remove('-translate-x-full');
+      overlay.classList.remove('hidden');
+      menuBtn.setAttribute('aria-expanded', 'true');
+      sidebar.querySelector('a')?.focus();
+    }
+    function closeSidebar() {
+      sidebar.classList.add('-translate-x-full');
+      overlay.classList.add('hidden');
+      menuBtn.setAttribute('aria-expanded', 'false');
+    }
+    menuBtn.addEventListener('click', () => {
+      const isOpen = !sidebar.classList.contains('-translate-x-full');
+      isOpen ? closeSidebar() : openSidebar();
+    });
+    overlay.addEventListener('click', closeSidebar);
+
+    // Close sidebar on nav link click (mobile)
+    sidebar.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        if (window.innerWidth < 1024) closeSidebar();
+      });
+    });
+
+    // Close sidebar on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !sidebar.classList.contains('-translate-x-full') && window.innerWidth < 1024) {
+        closeSidebar();
+        menuBtn.focus();
+      }
+    });
+
+    // ── Active nav link on scroll ──
+    const navLinks = document.querySelectorAll('.nav-link');
+    const sections = [];
+    navLinks.forEach(link => {
+      const id = link.getAttribute('href')?.replace('#', '');
+      const el = id ? document.getElementById(id) : null;
+      if (el) sections.push({ el, link });
+    });
+
+    function updateActiveLink() {
+      let current = sections[0];
+      const scrollY = window.scrollY + 100;
+      for (const s of sections) {
+        if (s.el.offsetTop <= scrollY) current = s;
+      }
+      navLinks.forEach(l => l.classList.remove('active'));
+      if (current) current.link.classList.add('active');
+    }
+    window.addEventListener('scroll', updateActiveLink, { passive: true });
+    updateActiveLink();
+
+    // ── Back to top ──
+    const backToTop = document.getElementById('back-to-top');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 400) {
+        backToTop.classList.remove('opacity-0', 'pointer-events-none');
+        backToTop.classList.add('opacity-100');
+      } else {
+        backToTop.classList.add('opacity-0', 'pointer-events-none');
+        backToTop.classList.remove('opacity-100');
+      }
+    }, { passive: true });
+    backToTop.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // ── Copy code ──
+    function copyCode(btn) {
+      const codeBlock = btn.closest('.code-block');
+      const code = codeBlock.querySelector('code');
+      if (!code) return;
+      const text = code.textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const original = btn.textContent;
+        btn.textContent = 'Copiado';
+        btn.setAttribute('aria-label', 'Código copiado al portapapeles');
+        setTimeout(() => {
+          btn.textContent = original;
+          btn.setAttribute('aria-label', 'Copiar código al portapapeles');
+        }, 2000);
+      }).catch(() => {
+        btn.textContent = 'Error';
+        setTimeout(() => { btn.textContent = 'Copiar'; }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>
