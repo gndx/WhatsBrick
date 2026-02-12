@@ -1,47 +1,46 @@
-# WhatsBrick
+# WhatsBrick - Whatsapp API
 
-A Node.js server that integrates with the WhatsApp Cloud API. It exposes a webhook for Meta to verify and receive incoming messages, and can reply with text using the Graph API.
+Un servidor que conecta tu aplicación con **WhatsApp** usando la API oficial de Meta. Recibe mensajes entrantes, responde automáticamente y te permite construir bots o flujos de atención sin depender de terceros.
 
-> Built brick by brick, like a medieval LEGO castle.
+> Construido ladrillo a ladrillo, como un castillo medieval de LEGO.
 
-For project structure, routes, environment variables, and webhook flow details, see [docs/estructura.md](docs/estructura.md).
+Si quieres profundizar en la estructura del proyecto, rutas, variables de entorno y cómo funciona el webhook, entra a [docs/estructura.md](docs/estructura.md).
 
-## Getting started
+## Cómo empezar
 
-1. **Clone the repo and install dependencies**
+1. **Clona el repositorio e instala lo necesario**
 
    ```bash
    npm install
    ```
 
-2. **Configure environment**
+2. **Configura tu entorno**
 
-   Copy `.env.example` to `.env.local` and set your values:
+   Copia el archivo `.env.example` a `.env.local` y completa estos valores:
+   - `PORT` – Puerto donde corre el servidor (por defecto: 3000)
+   - `VERIFY_TOKEN` – Token que defines en Meta for Developers para verificar el webhook
+   - `WHATSAPP_TOKEN` – Token de acceso de tu app de WhatsApp en Meta
+   - `PHONE_NUMBER_ID` – ID del número de teléfono de WhatsApp Business
 
-   - `PORT` – Server port (default: 3000)
-   - `VERIFY_TOKEN` – Token you set in Meta for Developers for webhook verification
-   - `WHATSAPP_TOKEN` – WhatsApp app access token from Meta
-   - `PHONE_NUMBER_ID` – WhatsApp Business phone number ID
-
-3. **Run the server**
+3. **Arranca el servidor**
 
    ```bash
-   # Production
+   # Producción
    npm start
 
-   # Development (auto-reload)
+   # Desarrollo (recarga automática al cambiar código)
    npm run dev
    ```
 
-   The server runs at `http://localhost:3000` (or the port you set in `PORT`).
+   El servidor quedará disponible en `http://localhost:3000` (o el puerto que hayas puesto en `PORT`).
 
 ---
 
-💻 **Contributing**  
-Contributions to this project are welcome. If you find a bug or have a suggestion for improvement, please open an issue or submit a pull request.
+💻 **Contribuir**
+Las contribuciones son bienvenidas. Si encuentras un error o tienes una idea para mejorar el proyecto, abre un issue o envía un pull request.
 
-📃 **License**  
-This project is licensed under the MIT License. See the LICENSE file for details.
+📃 **Licencia**
+Este proyecto está bajo la licencia MIT. Los detalles están en el archivo LICENSE.
 
-☕ **Support**  
-If this project helped you learn something new, or if you're feeling particularly generous, you can buy me a coffee. It's greatly appreciated! 😊 [GitHub Sponsors](https://github.com/sponsors/gndx)
+☕ **Apoyar**
+Si este proyecto te ayudó a aprender algo nuevo o simplemente quieres apoyar el trabajo, puedes invitarme un café. ¡Se agradece mucho! 😊 [GitHub Sponsors](https://github.com/sponsors/gndx)
