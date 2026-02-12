@@ -1,0 +1,17 @@
+# Dependencias
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Variables de entorno (secretos)
+.env
+.env.local
+.env.*.local
+
+# Cobertura de tests
+coverage/
+
+# Archivo de npm pack
+*.tgz

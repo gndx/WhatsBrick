@@ -1,0 +1,43 @@
+{
+  "name": "whatsbrick",
+  "version": "1.0.0",
+  "description": "WhatsBrick - WhatsApp API Integration",
+  "main": "src/app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/app.js",
+    "dev": "node --watch src/app.js"
+  },
+  "keywords": [
+    "whatsapp",
+    "whatsbrick",
+    "api",
+    "webhook",
+    "meta",
+    "cloud-api"
+  ],
+  "author": {
+    "name": "GNDX"
+  },
+  "contributors": [
+    {
+      "name": "Oscar Barajas @gndx",
+      "email": "oscar@gndx.dev",
+      "url": "https://lab10.ai"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gndx/WhatsBrick"
+  },
+  "bugs": {
+    "url": "https://github.com/gndx/WhatsBrick/issues"
+  },
+  "homepage": "https://github.com/gndx/WhatsBrick#readme",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "dotenv": "^17.2.4",
+    "express": "5.2.1"
+  }
+}
