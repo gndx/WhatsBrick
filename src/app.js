@@ -4,6 +4,7 @@
  */
 
 import express from 'express';
+import crypto from 'node:crypto';
 import dotenv from 'dotenv';
 
 // Cargar variables de entorno (.env.local tiene prioridad sobre .env)
@@ -13,8 +14,23 @@ dotenv.config({ path: '.env.local', override: true });
 /** Instancia de la aplicación Express */
 const app = express();
 
-/** Middleware para parsear el cuerpo de las peticiones como JSON */
-app.use(express.json());
+/** Middleware para parsear JSON y conservar el body crudo para validación de firma */
+app.use(express.json({
+  verify: (req, _res, buf) => { req.rawBody = buf; },
+}));
+
+/**
+ * Valida la firma X-Hub-Signature-256 de Meta.
+ * @returns {boolean} true si la firma es válida o APP_SECRET no está configurado
+ */
+function isValidSignature(req) {
+  const appSecret = process.env.APP_SECRET;
+  if (!appSecret) return true;
+  const signature = req.get('X-Hub-Signature-256');
+  if (!signature) return false;
+  const expected = 'sha256=' + crypto.createHmac('sha256', appSecret).update(req.rawBody).digest('hex');
+  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+}
 
 /** Puerto del servidor (por defecto 3000) */
 const port = process.env.PORT || 3000;
@@ -64,6 +80,12 @@ const handleWebhookPost = async (req, res) => {
   const timestamp = new Date().toISOString().replace('T', ' ').slice(0, 19);
   console.log(`\n\nWebhook received ${timestamp}\n`);
   console.log(JSON.stringify(req.body, null, 2));
+
+  if (!isValidSignature(req)) {
+    console.warn('Firma inválida, request rechazado');
+    res.status(401).end();
+    return;
+  }
 
   res.status(200).end();
 
